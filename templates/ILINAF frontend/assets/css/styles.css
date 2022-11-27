@@ -1,0 +1,30 @@
+.globe--dragging {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+.globe-container {
+  display: flex;
+  justify-content: center;
+  max-height: 100vmin;
+  max-width: 100vmin;
+  margin: 0 auto;
+}
+
+.globe {
+  height: 70vmin;
+  width: auto;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+.globe--dragging {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+#hero {
+  width: 100%;
+  height: 100vh;
+}
+
