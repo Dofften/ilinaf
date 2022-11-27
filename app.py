@@ -514,5 +514,3 @@ def end_home():
 @app.route("/end-dashboard")
 def end_dashboard():
     return render_template("ILINAF frontend/dashboard.html")
-if __name__ == '__main__':
-    app.run(port=5000)
