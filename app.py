@@ -18,36 +18,45 @@ models = [
     "Mean_years_of_schooling(male)", 
     "Gross_national_income_per_capita(male)", 
     "Life_expectancy_at_birth(male)"
-    ] # list all the model names
-model_dict = {} # create an empty dictionary to store the models
-for model in models: # loop through the model names
-    model_dict[model] = tf.keras.models.load_model(f'static/models/{model}/{model}_model.h5') # load the model and store it in the dictionary with the same name
+    ]
+model_dict = {}
+for model in models:
+    model_dict[model] = tf.keras.models.load_model(f'static/models/{model}/{model}_model.h5')
 
-# Function to do prediction
-def predict_indicator(model_name, x_input, years, max_value:None, reshape:tuple): # define a function that takes a model name and an input array as parameters
-    model = model_dict[model_name] # get the model from the dictionary
-    temp_input=list(x_input) # create a temporary list from the input array
-    data_dict={} # create an empty dictionary to store the predictions
-    i=0 # initialize a counter
-    while(i<years): # loop for the number of years
-        if(len(temp_input)>3): # if the temporary list has more than 3 elements
-            x_input=np.array(temp_input[1:]) # use the last 3 elements as the input array
-            x_input = x_input.reshape(reshape) # reshape the input array to match the model input shape
-            yhat = tf.keras.activations.relu(model.predict(x_input, verbose=0), max_value=max_value) # predict the output using the model and apply a relu activation with a max value of 18
-            temp_input.append(yhat[0][0]) # append the prediction to the temporary list
-            temp_input=temp_input[1:] # remove the first element from the temporary list
-            data_dict[(2022+i)]=tf.cast((yhat[0][0]), tf.float64).numpy() # store the prediction in the data dictionary with the year as the key
-            i=i+1 # increment the counter
-        else: # if the temporary list has 3 or less elements
-            x_input = x_input.reshape(reshape) # reshape the input array to match the model input shape
-            yhat = tf.keras.activations.relu(model.predict(x_input, verbose=0), max_value=max_value) # predict the output using the model and apply a relu activation with a max value of 18
-            temp_input.append(yhat[0][0]) # append the prediction to the temporary list
-            data_dict[(2022+i)]=tf.cast((yhat[0][0]), tf.float64).numpy() # store the prediction in the data dictionary with the year as the key
-            i=i+1 # increment the counter
-    return data_dict # return the data dictionary
 
-############### Function to calculate metrics from predicted values ####################
+def predict_indicator(model_name, x_input, years, max_value:None, reshape:tuple):
+    '''
+    a function that takes a model name, first 3 x values, number of years into the future to be predicted, maximum relu value and shape as parameters to make predictions.
+
+    returns a dictionary with predictions
+    '''
+    x_input = np.array(x_input)
+    model = model_dict[model_name]
+    temp_input=list(x_input)
+    data_dict={}
+    i=0
+    while(i<years):
+        if(len(temp_input)>3):
+            x_input=np.array(temp_input[1:])
+            x_input = x_input.reshape(reshape)
+            yhat = tf.keras.activations.relu(model.predict(x_input, verbose=0), max_value=max_value)
+            temp_input.append(yhat[0][0])
+            temp_input=temp_input[1:]
+            data_dict[(2022+i)]=tf.cast((yhat[0][0]), tf.float64).numpy()
+            i=i+1
+        else:
+            x_input = x_input.reshape(reshape)
+            yhat = tf.keras.activations.relu(model.predict(x_input, verbose=0), max_value=max_value)
+            temp_input.append(yhat[0][0])
+            data_dict[(2022+i)]=tf.cast((yhat[0][0]), tf.float64).numpy()
+            i=i+1
+    return data_dict
+
+
 def predict_HDI(years):
+    '''
+    A function that takes number of years into the future and calls the prediction functions
+    '''
     HDI_dict={}
     female_HDI_dict={}
     male_HDI_dict={}
@@ -55,23 +64,23 @@ def predict_HDI(years):
     GDI_dict={}
     i=0
     ######### overall Indices #########
-    XYOS = predict_indicator("Expected_years_of_schooling(overall)", np.array([10.69855835, 10.69855835, 10.69855835]), years, 18, (1, 3))
-    GNI = predict_indicator("Gross_national_income_per_capita(overall)", np.array([4381.487855, 4266.967466, 4473.570344]), years, 75000, (1, 3))
-    LE = predict_indicator("Life_expectancy_at_birth(overall)", np.array([62.9432, 62.6755, 61.427]), years, 85, (1, 3))
-    MYOS = predict_indicator("Mean_years_of_schooling(overall)", np.array([6.652, 6.652, 6.652]), years, 15, (1, 3))
+    XYOS = predict_indicator("Expected_years_of_schooling(overall)", [10.69855835, 10.69855835, 10.69855835], years, 18, (1, 3))
+    GNI = predict_indicator("Gross_national_income_per_capita(overall)", [4381.487855, 4266.967466, 4473.570344], years, 75000, (1, 3))
+    LE = predict_indicator("Life_expectancy_at_birth(overall)", [62.9432, 62.6755, 61.427], years, 85, (1, 3))
+    MYOS = predict_indicator("Mean_years_of_schooling(overall)", [6.652, 6.652, 6.652], years, 15, (1, 3))
     ######### female Indices #########
-    female_XYOS = predict_indicator("Expected_years_of_schooling(female)", np.array([10.34585953, 10.34585953, 10.34585953]), years, 18, (1, 3))
-    female_GNI = predict_indicator("Gross_national_income_per_capita(female)", np.array([3983.236518, 3696.272467, 3873.191056]), years, 75000, (1, 3))
-    female_LE = predict_indicator("Life_expectancy_at_birth(female)", np.array([65.2753, 65.0621, 64.0899]), years, 85, (1, 3))
-    female_MYOS = predict_indicator("Mean_years_of_schooling(female)", np.array([6.064, 6.064, 6.064]), years, 15, (1, 3))
+    female_XYOS = predict_indicator("Expected_years_of_schooling(female)", [10.34585953, 10.34585953, 10.34585953], years, 18, (1, 3))
+    female_GNI = predict_indicator("Gross_national_income_per_capita(female)", [3983.236518, 3696.272467, 3873.191056], years, 75000, (1, 3))
+    female_LE = predict_indicator("Life_expectancy_at_birth(female)", [65.2753, 65.0621, 64.0899], years, 85, (1, 3))
+    female_MYOS = predict_indicator("Mean_years_of_schooling(female)", [6.064, 6.064, 6.064], years, 15, (1, 3))
     ######### male Indices #########
-    male_XYOS = predict_indicator("Expected_years_of_schooling(male)", np.array([11.05279836, 11.05279836, 11.05279836]), years, 18, (1, 3))
-    male_GNI = predict_indicator("Gross_national_income_per_capita(male)", np.array([4786.153902, 4847.056851, 5084.167477]), years, 75000, (1, 3))
-    male_LE = predict_indicator("Life_expectancy_at_birth(male)", np.array([60.6781, 60.3723, 58.9354]), years, 85, (1, 3))
-    male_MYOS = predict_indicator("Mean_years_of_schooling(male)", np.array([7.26, 7.26, 7.26]), years, 15, (1, 3))
+    male_XYOS = predict_indicator("Expected_years_of_schooling(male)", [11.05279836, 11.05279836, 11.05279836], years, 18, (1, 3))
+    male_GNI = predict_indicator("Gross_national_income_per_capita(male)", [4786.153902, 4847.056851, 5084.167477], years, 75000, (1, 3))
+    male_LE = predict_indicator("Life_expectancy_at_birth(male)", [60.6781, 60.3723, 58.9354], years, 85, (1, 3))
+    male_MYOS = predict_indicator("Mean_years_of_schooling(male)", [7.26, 7.26, 7.26], years, 15, (1, 3))
     ######################## for PHDI#########################
-    carbon_emissions = predict_indicator("carbon", np.array([0.34897306, 0.30027359, 0.300273588]), years, None, (1, 3, 1))
-    material_footprint = predict_indicator("Material_footprint_per_capita", np.array([4.62, 4.62, 4.62]), years, None, (1, 3, 1))
+    carbon_emissions = predict_indicator("carbon", [0.34897306, 0.30027359, 0.300273588], years, None, (1, 3, 1))
+    material_footprint = predict_indicator("Material_footprint_per_capita", [4.62, 4.62, 4.62], years, None, (1, 3, 1))
     ##########################################################
     while(i<years):
         ################ overall HDI indices #############
@@ -107,13 +116,12 @@ def predict_HDI(years):
 
 
 ################## Web backend with flask ############################
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template
 import json
 import os
 
 
 app = Flask(__name__)
-# predict_HDI(years)
 @app.route("/", methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
@@ -140,10 +148,3 @@ def end_home():
 def end_dashboard():
     return render_template("ILINAF frontend/dashboard.html")
 
-
-# main driver function
-if __name__ == '__main__':
- 
-    # run() method of Flask class runs the application
-    # on the local development server.
-    app.run()
